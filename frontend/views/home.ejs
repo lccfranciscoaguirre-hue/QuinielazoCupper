@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Quinielazo Mundial 2026</h1>
+    </header>
+    <main>
+        <div class="home-container">
+            <img src="/images/logo.png" alt="Mundial 2026 Logo" class="logo">
+            <h2>¡Bienvenido a la mejor Quiniela del Mundo!</h2>
+            <p>Regístrate y participa pronosticando los resultados de la primera fase.</p>
+            
+            <div class="btn-group">
+                <% if (registrationEnabled) { %>
+                    <a href="/registrar" class="btn btn-primary">Registrar</a>
+                <% } else { %>
+                    <a href="#" class="btn btn-primary disabled" title="El registro está cerrado">Registrar (Cerrado)</a>
+                <% } %>
+                <a href="/estadisticas" class="btn btn-stats">Tabla</a>
+                <a href="/concentrado" class="btn btn-general">General</a>
+                <a href="/admin" class="btn btn-admin">Administrador</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

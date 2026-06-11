@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .medal {
+            font-size: 1.5rem;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Ranking Mundial 2026</h1>
+        <p>Tabla de Posiciones de la Quiniela</p>
+    </header>
+    <main>
+        <div class="stats-container">
+            <% participants.forEach((participant, index) => { %>
+                <div class="participant-card">
+                    <div class="participant-info">
+                        <span class="rank">#<%= index + 1 %></span>
+                        <div class="p-details">
+                            <div class="name-with-flag" style="display: flex; align-items: center;">
+                                <span class="nickname"><%= participant.nickname %></span>
+                                <% if (participant.pais && countryFlags[participant.pais]) { %>
+                                    <img src="https://flagcdn.com/w40/<%= countryFlags[participant.pais] %>.png" alt="<%= participant.pais %>" class="flag-inline" style="margin-left: 8px;">
+                                <% } %>
+
+                                <% if (index === 0) { %>
+                                    <span class="medal" title="1er Lugar">🥇</span>
+                                <% } else if (index === 1) { %>
+                                    <span class="medal" title="2do Lugar">🥈</span>
+                                <% } else if (index === 2) { %>
+                                    <span class="medal" title="3er Lugar">🥉</span>
+                                <% } %>
+                            </div>
+                            <span class="p-points"><%= participant.puntos %> Pts</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-section">
+                        <div class="progress-labels">
+                            <span>Eficacia (Puntos Obtenidos)</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <%
+                                const totalPronosticosAcertados = participant.aciertosPartidos + participant.aciertosGanador;
+                                const widthPercentage = totalPronosticosAcertados > 0 ? ((participant.aciertosPartidos * 2 + participant.aciertosGanador * 1) / (96 * 2)) * 100 : 0;
+                            %>
+                            <div class="progress-bar-fill" style="width: <%= widthPercentage %>%; background-color: <%= participant.color || '#4caf50' %>;"></div>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <span class="stat-value"><%= participant.aciertosPartidos %></span>
+                                <span class="stat-label">Resultados Exactos (2 pts)</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value"><%= participant.aciertosGanador %></span>
+                                <span class="stat-label">Ganadores (1 pt)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: center;">
+            <a href="/" class="btn btn-home">Volver al Inicio</a>
+        </div>
+    </main>
+</body>
+</html>

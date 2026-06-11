@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .section-title {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mi Quinielazo 2026</h1>
+        <p>Regístrate e ingresa tus pronósticos para la fase de grupos</p>
+    </header>
+    <main>
+        <form id="quinielaForm">
+
+            <h2 class="section-title">1. Tus Datos Personales</h2>
+            <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="nickname">Nickname (Debe ser único)</label>
+                    <input type="text" id="nickname" name="nickname" required placeholder="Tu apodo de jugador" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre">
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" name="apellido" required placeholder="Tu apellido">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="pais">Selecciona tu País (Participante 2026)</label>
+                    <select id="pais" name="pais" required>
+                        <option value="">-- Elige un país --</option>
+                        <% countries.forEach(country => { %>
+                            <option value="<%= country %>">
+                                 <%= country %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+            <div id="selectedFlag" style="text-align: center; margin-bottom: 1rem; min-height: 50px;">
+                <!-- Flag will appear here via JS -->
+            </div>
+
+            <h2 class="section-title">2. Tus Pronósticos</h2>
+            <div class="matches-grid">
+                <% 
+                   let currentGroup = ''; 
+                   const groupColors = ['#0046ad', '#d10000', '#009b3a', '#ffcc00', '#00b1ea', '#6a2135', '#222222', '#f4a460', '#8b4513', '#4682b4', '#556b2f', '#483d8b'];
+                   let groupIndex = -1;
+                %>
+                <% allMatches.forEach((match, index) => { %>
+                    <% if (match.group !== currentGroup) { %>
+                        <% 
+                           currentGroup = match.group; 
+                           groupIndex++;
+                           const bgColor = groupColors[groupIndex % groupColors.length];
+                        %>
+                        <div class="group-header" style="background-color: <%= bgColor %>;">
+                            <h3><%= currentGroup %></h3>
+                        </div>
+                    <% } %>
+                    
+                    <div class="match-card">
+                        <div class="team-container">
+                            <img src="https://flagcdn.com/w40/<%= countryFlags[match.home] %>.png" alt="<%= match.home %>" class="flag">
+                            <span class="team-name"><%= match.home %></span>
+                        </div>
+                        
+                        <div class="score-container">
+                            <div class="vs-label">VS</div>
+                            <div class="inputs-wrapper">
+                                <input type="number" name="match_<%= index %>_home" class="score-input" min="0" required value="0">
+                                <input type="number" name="match_<%= index %>_away" class="score-input" min="0" required value="0">
+                            </div>
+                            <!-- Hidden inputs for team names to simplify data collection -->
+                            <input type="hidden" name="match_<%= index %>_home_team" value="<%= match.home %>">
+                            <input type="hidden" name="match_<%= index %>_away_team" value="<%= match.away %>">
+                            <input type="hidden" name="match_<%= index %>_group" value="<%= match.group %>">
+                        </div>
+
+                        <div class="team-container right">
+                            <span class="team-name"><%= match.away %></span>
+                            <img src="https://flagcdn.com/w40/<%= countryFlags[match.away] %>.png" alt="<%= match.away %>" class="flag">
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+            
+            <div style="margin-top: 3rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                <button type="submit" id="submitBtn" class="btn btn-secondary" style="width: 100%; max-width: 400px; font-size: 1.5rem;">Guardar Registro y Quinielazo</button>
+                <a href="/" class="btn btn-home">Volver al Inicio</a>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Logica para la bandera del país
+        const countryFlags = <%- JSON.stringify(countryFlags) %>;
+        const paisSelect = document.getElementById('pais');
+        const selectedFlagDiv = document.getElementById('selectedFlag');
+        const submitBtn = document.getElementById('submitBtn');
+
+        paisSelect.addEventListener('change', (e) => {
+            const country = e.target.value;
+            if (country && countryFlags[country]) {
+                const code = countryFlags[country];
+                selectedFlagDiv.innerHTML = `<img src="https://flagcdn.com/w80/${code}.png" alt="${country}" style="box-shadow: 0 2px 5px rgba(0,0,0,0.2);">`;
+            } else {
+                selectedFlagDiv.innerHTML = '';
+            }
+        });
+
+        // Lógica de guardado
+        document.getElementById('quinielaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Deshabilitar el botón y cambiar el texto para evitar doble envío
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Guardando... por favor espera';
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.cursor = 'not-allowed';
+
+            const formData = new FormData(e.target);
+            const rawData = Object.fromEntries(formData.entries());
+            
+            // 1. Extraer datos del usuario (el email ha sido removido)
+            const userData = {
+                nickname: rawData.nickname,
+                nombre: rawData.nombre,
+                apellido: rawData.apellido,
+                pais: rawData.pais
+            };
+
+            // 2. Extraer predicciones
+            const matches = [];
+            const totalMatches = <%= allMatches.length %>;
+            
+            for (let i = 0; i < totalMatches; i++) {
+                matches.push({
+                    group: rawData[`match_${i}_group`],
+                    homeTeam: rawData[`match_${i}_home_team`],
+                    awayTeam: rawData[`match_${i}_away_team`],
+                    homeScore: rawData[`match_${i}_home`],
+                    awayScore: rawData[`match_${i}_away`]
+                });
+            }
+
+            const payload = {
+                usuario: userData,
+                predicciones: matches
+            };
+
+            console.log('Enviando Registro y Quinielazo al backend:', payload);
+
+            try {
+                // Primero guardamos el usuario y las predicciones juntas en la nueva ruta
+                const response = await fetch('/api/registro-completo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if(result.success) {
+                    alert('¡Registro y Quinielazo guardados exitosamente!');
+                    // Ocultamos el botón por completo tras el éxito
+                    submitBtn.style.display = 'none';
+                    window.location.href = '/estadisticas';
+                } else {
+                    alert('Error: ' + result.message);
+                    // Restaurar el botón en caso de error del servidor
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Guardar Registro y Quinielazo';
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Error de conexión al guardar los datos.');
+                // Restaurar el botón en caso de error de red
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Guardar Registro y Quinielazo';
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            }
+        });
+    </script>
+</body>
+</html>

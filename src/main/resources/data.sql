@@ -1,0 +1,1 @@
+-- Archivo vacío. La inicialización de datos se maneja en DataInitializer.java

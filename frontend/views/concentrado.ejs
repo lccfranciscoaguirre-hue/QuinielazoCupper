@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .concentrado-table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .concentrado-table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+        .concentrado-table th, .concentrado-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .concentrado-table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .concentrado-table th.sticky-col {
+            left: 0;
+            z-index: 20;
+            background-color: #e9ecef;
+        }
+        .concentrado-table td.sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: #f9f9f9;
+            font-weight: bold;
+            z-index: 5;
+        }
+        .match-header {
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+        .match-header img {
+            margin: 2px 0;
+        }
+        .acierto-exacto {
+            background-color: #d4edda; /* Verde claro */
+            font-weight: bold;
+            color: #155724;
+        }
+        .acierto-ganador {
+            background-color: #e2e3e5; /* Gris claro */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Concentrado de Pronósticos</h1>
+        <p>Vista general de todos los marcadores ingresados</p>
+    </header>
+    <main style="max-width: 95%; margin: 0 auto;">
+
+        <div class="concentrado-table-container">
+            <table class="concentrado-table">
+                <thead>
+                    <tr>
+                        <th class="sticky-col">Participante</th>
+                        <% partidos.sort((a, b) => a.grupo.localeCompare(b.grupo)).forEach(partido => { %>
+                            <th>
+                                <div class="match-header">
+                                    <span><%= partido.equipoLocal %></span>
+                                    <span>vs</span>
+                                    <span><%= partido.equipoVisitante %></span>
+                                </div>
+                            </th>
+                        <% }) %>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% participantes.forEach(p => { %>
+                        <tr>
+                            <td class="sticky-col"><%= p.nickname %></td>
+                            <% partidos.forEach(partido => {
+                                // Buscar la predicción para este usuario y este partido
+                                const pred = predicciones.find(pr =>
+                                    pr.participante.id === p.id &&
+                                    pr.partido.id === partido.id
+                                );
+
+                                let cellClass = '';
+                                if (pred && partido.jugado) {
+                                    const aciertoExacto = pred.golesLocal === partido.golesLocal && pred.golesVisitante === partido.golesVisitante;
+                                    // Usamos Math.sign en lugar de Integer.compare
+                                    const aciertoGanador = !aciertoExacto && (Math.sign(pred.golesLocal - pred.golesVisitante) === Math.sign(partido.golesLocal - partido.golesVisitante));
+
+                                    if (aciertoExacto) {
+                                        cellClass = 'acierto-exacto';
+                                    } else if (aciertoGanador) {
+                                        cellClass = 'acierto-ganador';
+                                    }
+                                }
+                            %>
+                                <td class="<%= cellClass %>">
+                                    <% if (pred) { %>
+                                        <%= pred.golesLocal %> - <%= pred.golesVisitante %>
+                                    <% } else { %>
+                                        <span style="color: #ccc;">-</span>
+                                    <% } %>
+                                </td>
+                            <% }) %>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: center;">
+            <a href="/" class="btn btn-home">Volver al Inicio</a>
+        </div>
+    </main>
+</body>
+</html>

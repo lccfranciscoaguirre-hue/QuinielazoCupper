@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-report {
+            background-color: #009b3a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .btn-report:hover {
+            background-color: #007a2d;
+        }
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        .admin-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Panel de Administración</h1>
+        <p>Carga de Resultados Oficiales y Respaldo</p>
+    </header>
+    <main>
+        <div class="admin-section">
+            <h2 style="text-align: center;">Opciones Generales</h2>
+            <div style="text-align: center; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <div class="toggle-container">
+                    <span style="font-weight: bold;">Estado del Registro:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="registrationToggle" <%= registrationEnabled ? 'checked' : '' %>>
+                        <span class="slider round"></span>
+                    </label>
+                    <span id="toggleLabel" style="font-weight: bold; color: <%= registrationEnabled ? '#28a745' : '#d10000' %>;">
+                        <%= registrationEnabled ? 'HABILITADO' : 'DESHABILITADO' %>
+                    </span>
+                </div>
+
+                <button id="btnGenerateReport" class="btn btn-report">Descargar Reporte en Excel</button>
+                <p><small>Este botón descargará un archivo XLSX con todos los pronósticos de los usuarios registrados.</small></p>
+
+                <button id="btnResetMatches" class="btn-warning">Reestablecer Marcadores</button>
+                <p><small>Limpia los campos del formulario de abajo sin afectar a la base de datos de los usuarios.</small></p>
+
+                <button id="btnDeleteDb" class="btn-danger">¡PELIGRO! Borrar Base de Datos</button>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h2 style="text-align: center;">Eliminar Participante</h2>
+            <div style="display: flex; gap: 10px; align-items: center; justify-content: center;">
+                <select id="userToDelete" style="width: 300px;">
+                    <option value="">-- Selecciona un usuario --</option>
+                    <% participantes.forEach(p => { %>
+                        <option value="<%= p.id %>"><%= p.nickname %> (<%= p.nombre %>)</option>
+                    <% }) %>
+                </select>
+                <button id="btnDeleteUser" class="btn-danger" style="margin-top: 0;">Eliminar</button>
+            </div>
+        </div>
+
+        <form id="adminResultsForm" class="admin-section">
+            <h2 style="text-align: center;">Ingresar Resultados Finales</h2>
+            <div class="matches-grid">
+                <% 
+                   let currentGroup = ''; 
+                   const groupColors = ['#0046ad', '#d10000', '#009b3a', '#ffcc00', '#00b1ea', '#6a2135', '#222222', '#f4a460', '#8b4513', '#4682b4', '#556b2f', '#483d8b'];
+                   let groupIndex = -1;
+                %>
+                <% allMatches.forEach((match, index) => { %>
+                    <% if (match.grupo !== currentGroup) { %>
+                        <% 
+                           currentGroup = match.grupo;
+                           groupIndex++;
+                           const bgColor = groupColors[groupIndex % groupColors.length];
+                        %>
+                        <div class="group-header" style="background-color: <%= bgColor %>;">
+                            <h3><%= currentGroup %></h3>
+                        </div>
+                    <% } %>
+                    
+                    <div class="match-card" style="border-left: 5px solid #333;">
+                        <div class="team-container">
+                            <img src="https://flagcdn.com/w40/<%= countryFlags[match.equipoLocal] %>.png" alt="<%= match.equipoLocal %>" class="flag">
+                            <span class="team-name"><%= match.equipoLocal %></span>
+                        </div>
+                        
+                        <div class="score-container">
+                            <div class="vs-label">RESULTADO</div>
+                            <div class="inputs-wrapper">
+                                <input type="number" name="final_<%= match.id %>_home" class="score-input" min="0" value="<%= match.golesLocal !== null ? match.golesLocal : '' %>" style="border-color: #333;">
+                                <input type="number" name="final_<%= match.id %>_away" class="score-input" min="0" value="<%= match.golesVisitante !== null ? match.golesVisitante : '' %>" style="border-color: #333;">
+                            </div>
+                        </div>
+
+                        <div class="team-container right">
+                            <span class="team-name"><%= match.equipoVisitante %></span>
+                            <img src="https://flagcdn.com/w40/<%= countryFlags[match.equipoVisitante] %>.png" alt="<%= match.equipoVisitante %>" class="flag">
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+            
+            <div style="margin-top: 3rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                <button type="submit" class="btn btn-admin" style="width: 100%; max-width: 400px; font-size: 1.5rem;">Guardar Resultados Oficiales</button>
+                <a href="/" class="btn btn-home">Volver al Inicio</a>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        // Handle Registration Toggle
+        const toggle = document.getElementById('registrationToggle');
+        const toggleLabel = document.getElementById('toggleLabel');
+
+        toggle.addEventListener('change', async (e) => {
+            const isEnabled = e.target.checked;
+            
+            try {
+                const response = await fetch('/api/toggle-registration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: isEnabled })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    toggleLabel.innerText = isEnabled ? 'HABILITADO' : 'DESHABILITADO';
+                    toggleLabel.style.color = isEnabled ? '#28a745' : '#d10000';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error al cambiar el estado del registro.');
+                e.target.checked = !isEnabled; // Revert
+            }
+        });
+
+        // Handle Report Download
+        document.getElementById('btnGenerateReport').addEventListener('click', () => {
+            window.location.href = '/api/descargar-reporte';
+        });
+
+        // Handle Reset Matches
+        document.getElementById('btnResetMatches').addEventListener('click', () => {
+            const password = prompt('Esta acción limpiará el formulario. Ingrese la contraseña de administrador para continuar:');
+            if (password === 'Qu1n13la2026') {
+                if (confirm('Contraseña correcta. ¿Estás seguro de que quieres limpiar todos los marcadores del formulario?')) {
+                    const scoreInputs = document.querySelectorAll('.score-input');
+                    scoreInputs.forEach(input => {
+                        input.value = ''; // Los pone en blanco
+                    });
+                }
+            } else if (password !== null) {
+                alert('Contraseña incorrecta.');
+            }
+        });
+
+        // Handle Official Results Submission
+        document.getElementById('adminResultsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+
+            console.log('Guardando resultados oficiales (Admin):', data);
+
+            try {
+                const response = await fetch('/api/actualizar-resultados', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                alert(result.message);
+            } catch (err) {
+                console.error(err);
+                alert('Error al guardar los resultados.');
+            }
+        });
+
+        // Handle DB Deletion
+        document.getElementById('btnDeleteDb').addEventListener('click', async () => {
+            const password = prompt('Esta acción borrará TODOS los usuarios y predicciones. Ingrese la contraseña para continuar:');
+
+            if (password) {
+                try {
+                    const response = await fetch('/api/borrar-bd', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: password })
+                    });
+                    const result = await response.json();
+
+                    alert(result.message);
+
+                    if (result.success) {
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error al intentar borrar la base de datos.');
+                }
+            }
+        });
+
+        // Handle User Deletion
+        document.getElementById('btnDeleteUser').addEventListener('click', async () => {
+            const userSelect = document.getElementById('userToDelete');
+            const userId = userSelect.value;
+            const userName = userSelect.options[userSelect.selectedIndex].text;
+
+            if (!userId) {
+                alert('Por favor, selecciona un usuario para eliminar.');
+                return;
+            }
+
+            const password = prompt(`Estás a punto de eliminar a "${userName}" y todas sus predicciones. Esta acción no se puede deshacer.\n\nIngresa la contraseña de administrador para confirmar:`);
+
+            if (password) {
+                try {
+                    const response = await fetch('/api/eliminar-participante', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: userId, password: password })
+                    });
+                    const result = await response.json();
+
+                    alert(result.message);
+
+                    if (result.success) {
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    console.error('Error al eliminar usuario:', err);
+                    alert('Error de conexión al intentar eliminar el usuario.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
