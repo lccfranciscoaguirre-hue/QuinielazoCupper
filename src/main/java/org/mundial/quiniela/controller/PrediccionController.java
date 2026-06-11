@@ -16,7 +16,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/predicciones")
-@CrossOrigin(origins = "*")
 public class PrediccionController {
 
     @Autowired

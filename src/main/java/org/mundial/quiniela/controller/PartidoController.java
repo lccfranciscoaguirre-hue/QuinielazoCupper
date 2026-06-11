@@ -10,7 +10,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/partidos")
-@CrossOrigin(origins = "*") // Para desarrollo
 public class PartidoController {
 
     @Autowired
