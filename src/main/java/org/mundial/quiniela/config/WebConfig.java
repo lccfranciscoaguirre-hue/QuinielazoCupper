@@ -10,7 +10,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // Aplica CORS a todos los endpoints
-                .allowedOrigins("https://web-production-64f2e.up.railway.app", "http://localhost:3000", "http://localhost:5173") // Permite tu backend, y frontends locales comunes
+                .allowedOriginPatterns(
+                    "https://*.vercel.app", 
+                    "http://localhost:3000", 
+                    "http://localhost:5173",
+                    "https://web-production-64f2e.up.railway.app"
+                ) // Usamos patrones para más flexibilidad
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
