@@ -1,5 +1,6 @@
 package org.mundial.quiniela.controller;
 
+import jakarta.transaction.Transactional;
 import org.mundial.quiniela.model.Partido;
 import org.mundial.quiniela.model.Participante;
 import org.mundial.quiniela.model.Prediccion;
@@ -33,6 +34,7 @@ public class PrediccionController {
     }
 
     @PostMapping("/registro-completo")
+    @Transactional
     public Map<String, Object> guardarRegistroCompleto(@RequestBody Map<String, Object> payload) {
         try {
             // 1. Extraer y crear el usuario
@@ -96,6 +98,8 @@ public class PrediccionController {
             // Este error saltará si dos personas intentan registrar el mismo nickname al mismo tiempo exacto
             return Map.of("success", false, "message", "El nickname ya está en uso en la base de datos. Por favor, elige otro.");
         } catch (Exception e) {
+            // Loguear el error real en el servidor para depuración
+            e.printStackTrace();
             return Map.of("success", false, "message", "Error al procesar el registro: " + e.getMessage());
         }
     }
