@@ -190,10 +190,21 @@ router.post('/api/registro-completo', async (req, res) => {
         const response = await axios.post(`${backendUrl}/api/predicciones/registro-completo`, req.body);
         res.json(response.data);
     } catch (error) {
-        // Modificación para devolver un error más detallado
-        const errorMessage = error.response ? error.response.data.message : error.message;
+        let errorMessage = 'Error desconocido';
+        if (error.response && error.response.data) {
+            // El servidor respondió con un código de estado fuera del rango 2xx
+            errorMessage = typeof error.response.data === 'string' 
+                ? error.response.data 
+                : (error.response.data.message || JSON.stringify(error.response.data));
+        } else if (error.request) {
+            // La petición fue hecha pero no se recibió respuesta
+            errorMessage = 'No se recibió respuesta del servidor (timeout o servidor caído)';
+        } else {
+            // Algo sucedió al configurar la petición que provocó un error
+            errorMessage = error.message;
+        }
         console.error('Error al guardar registro y predicciones:', errorMessage);
-        res.status(500).json({ success: false, message: `Error al conectar con el backend: ${errorMessage}` });
+        res.status(500).json({ success: false, message: `Error desde el backend: ${errorMessage}` });
     }
 });
 
